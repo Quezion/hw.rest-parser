@@ -1,16 +1,29 @@
 # hw.rest-parser
 
-Practice assignment to implement a basic in-memory webserver. 
+Practice assignment to implement a command-line app that takes an input file & outputs sorted views.
+
+As this isn't a "real production app", this repo's code has some metacommentary about _why_ particular decisions were made.
+
+There are two phases of this app's development:
+
+1. A simple CLI app that takes an input file & outputs three different views of the sorted records
+
+2. A rest HTTP server that receives new records & return sorted variations of them on endpoints
 
 ## Usage
 
-FIXME: explanation
+Launch a REPL session with your editor of choice (i.e. `M-x cider-jack-in-clj` or `lein repl`) See comment at end of `src/hw/rest_parser.clj` for REPL usage examples.
 
-    $ java -jar hw.rest-parser-0.1.0-standalone.jar [args]
+You may also set & run the program directly via `lein` like below.
 
-## Examples
+```bash
+export FILEPATH="data/basic_record.csv"
+lein run
+```
 
-...
+## Test
+
+Run at REPL or use `lein test`
 
 ## License
 
