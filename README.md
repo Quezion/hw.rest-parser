@@ -17,7 +17,7 @@ Launch a REPL session with your editor of choice (i.e. `M-x cider-jack-in-clj` o
 You may also set & run the program directly via `lein` like below.
 
 ```bash
-export FILEPATH="data/basic_record.csv"
+export FILEPATHS="data/basic_record.csv,data/basic_record.psv,data/basic_record.ssv"
 lein run
 ```
 
