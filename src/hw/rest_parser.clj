@@ -7,9 +7,10 @@
 
 (def row-headers [:LastName :FirstName :Email :FavoriteColor :DateOfBirth])
 
-(defn line-matches-separator?
-  "Whether string line of file matches one of the input separators for the entire line.
-  separators - set of string separators that could be between values"
+(defn line-match-separator
+  "Returns regex for separator of string line, or nil if line doesn't have consistent separator.
+  separators - set of string separators that could be between values
+  line - string with "
   [separators line]
   (->> (map #(when (= (count (re-seq % line))
                       (- (count row-headers) 1))
@@ -18,9 +19,14 @@
        (filter some?)
        first))
 
-(def match-allowed-separator (partial line-matches-separator? #{#","
-                                                                #"\|"
-                                                                #" "}))
+(def allowed-separators-regexp
+  #{#","
+    #"\|"
+    #" "})
+
+(def match-allowed-separator
+  "Matches line against all allowed separators & return first match"
+  (partial line-match-separator allowed-separators-regexp))
 
 (defn line->separator
   "Returns one of known valid string separators or nil if none could be determined"
@@ -48,6 +54,49 @@
 
 (defn validate-env [] (m/validate env-spec env))
 (defn explain-env [] (m/explain env-spec env))
+
+(defn string-compare-lowercase-asc [a b] (compare (str/lower-case a) (str/lower-case b)))
+(defn string-compare-lowercase-desc [a b] (compare (str/lower-case b) (str/lower-case a)))
+
+(def color-lastname [[:FavoriteColor string-compare-lowercase-asc]
+                     [:LastName string-compare-lowercase-asc]])
+
+;; TODO: TODO: validate into datetime when parsing in records
+;; (def dob [[:DateOfBirth compare]])
+
+(def lastname-desc [[:LastName string-compare-lowercase-desc]])
+
+(def output-views [color-lastname
+                   ;;dob
+                   lastname-desc])
+
+(defn sort-records
+  "Returns sorted list of input records based on sort-definition.
+  records - seq of maps representing parsed records
+  sort-definition - vec of vecs, where each 2-element subvec is keyfn & comparator"
+  [records sort-definition]
+  (let [sort-keys (map first sort-definition)
+        keyfn (apply juxt sort-keys)
+        sort-comparators (map second sort-definition)
+        comparator (fn [a b]
+                     (loop [[comparator & comp-rest] sort-comparators
+                            [a1 & a-rest] a
+                            [b1 & b-rest] b]
+                       (let [result (comparator a b)]
+                         (if (and (zero? result)
+                                  (seq sort-comparators))
+                           (recur comp-rest a-rest b-rest)
+                           result))))]
+    (sort-by keyfn comparator records)))
+
+;; Little REPL test here that'll move to test namespace when we add DOB parsing in next commit
+(comment
+  (def test-records [{:FavoriteColor "blue" :LastName "Aardvark"}
+                     {:FavoriteColor "red" :LastName "Bombadill"}
+                     {:FavoriteColor "blue" :LastName "Parker"}
+                     {:FavoriteColor "pink" :LastName "Stelsior"}])
+  (sort-records test-records lastname-desc)
+  (sort-records test-records color-lastname))
 
 (defn run
   [{:keys [filepaths]}]
