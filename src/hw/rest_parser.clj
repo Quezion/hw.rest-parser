@@ -22,9 +22,10 @@
        first))
 
 (def allowed-separators-regexp
-  #{#","
-    #"\|"
-    #" "})
+  "Allowed line separators in correct sequence for line-matching"
+  [#","
+   #"\|"
+   #" "])
 
 (def match-allowed-separator
   "Matches line against all allowed separators & return first match"
