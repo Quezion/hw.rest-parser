@@ -2,8 +2,7 @@
   (:require [environ.core :as environ]
             [clojure.edn :as edn]
             [clojure.test :refer :all]
-            [hw.rest-parser :refer [-main
-                                    with-env]]))
+            [hw.rest-parser :refer :all]))
 
 ;; There's more graceful ways to do this -- but let's roll it quick & dirty
 (deftest test-main
@@ -49,3 +48,23 @@
                 :Email "lucille.price@example.com",
                 :FavoriteColor "silver",
                 :DateOfBirth "1/1/1946"}))))))
+
+(def minimal-unsorted-records
+  "Small handrolled set to guarantee correct sorting"
+  [{:FavoriteColor "blue" :LastName "Parker"
+    :DateOfBirth #inst "1991-03-22T08:00:00.000-00:00"}
+   {:FavoriteColor "red" :LastName "Bombadil"
+    :DateOfBirth #inst "1972-08-10T07:00:00.000-00:00"}
+   {:FavoriteColor "blue" :LastName "Packer"
+    :DateOfBirth #inst "1951-08-06T07:00:00.000-00:00"}
+   {:FavoriteColor "pink" :LastName "Stelsior"
+    :DateOfBirth #inst "1984-09-07T07:00:00.000-00:00"}])
+
+(deftest sort-records-test
+  (let [[parker bombadil packer stelsior] minimal-unsorted-records]
+    (= (sort-records test-records lastname-desc)
+       [stelsior parker packer bombadil])
+    (= (sort-records test-records dob)
+       [packer bombadil stelsior parker])
+    (= (sort-records test-records color-lastname)
+       [packer parker stelsior bombadil])))

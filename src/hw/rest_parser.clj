@@ -1,8 +1,10 @@
 (ns hw.rest-parser
-  (:require [clojure.string :as str]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
             [environ.core :refer [env]]
             [malli.core :as m]
             [malli.error :as me])
+  (:import [java.text SimpleDateFormat])
   (:gen-class))
 
 (def row-headers [:LastName :FirstName :Email :FavoriteColor :DateOfBirth])
@@ -33,19 +35,26 @@
   [line]
   (match-allowed-separator line))
 
+(defn parse-datestring
+  "Parses date in expected format of MM/DD/YYYY"
+  [date]
+  (-> (SimpleDateFormat. "MM/dd/yyyy")
+      (.parse date)))
+
 (defn load-record
   "Loads record at target filepath into memory.
   A more graceful implementation might hold files open for the entire runtime,
   but side-effect complexity becomes messy without care & is better skipped for a sample app"
   [filepath]
   ;; Assume no header line
-  (with-open [rdr (clojure.java.io/reader filepath)]
+  (with-open [rdr (io/reader filepath)]
     (let [lines (line-seq rdr)
           separator (some-> (first lines)
                             (line->separator))]
       (when separator
         (->> lines
-             (map (comp #(zipmap row-headers %)
+             (map (comp #(update % :DateOfBirth parse-datestring)
+                        #(zipmap row-headers %)
                         #(map str/trim %)
                         #(str/split % separator)))
              doall))))) ;; Force in-memory realization now before file closes
@@ -61,13 +70,12 @@
 (def color-lastname [[:FavoriteColor string-compare-lowercase-asc]
                      [:LastName string-compare-lowercase-asc]])
 
-;; TODO: TODO: validate into datetime when parsing in records
-;; (def dob [[:DateOfBirth compare]])
+(def dob [[:DateOfBirth compare]])
 
 (def lastname-desc [[:LastName string-compare-lowercase-desc]])
 
 (def output-views [color-lastname
-                   ;;dob
+                   dob
                    lastname-desc])
 
 (defn sort-records
@@ -89,15 +97,6 @@
                            result))))]
     (sort-by keyfn comparator records)))
 
-;; Little REPL test here that'll move to test namespace when we add DOB parsing in next commit
-(comment
-  (def test-records [{:FavoriteColor "blue" :LastName "Aardvark"}
-                     {:FavoriteColor "red" :LastName "Bombadill"}
-                     {:FavoriteColor "blue" :LastName "Parker"}
-                     {:FavoriteColor "pink" :LastName "Stelsior"}])
-  (sort-records test-records lastname-desc)
-  (sort-records test-records color-lastname))
-
 (defn run
   [{:keys [filepaths]}]
   (as-> filepaths <>
@@ -117,7 +116,7 @@
     (->> (run env)
          (prn))))
 
-;; This technically belongs in dev.clj or test, but including here to make usage obvious
+;; This technically belongs in user.clj or test, but including here to make usage obvious
 (defmacro with-env
   [env & body]
   `(with-redefs [environ.core/env ~env]
@@ -125,4 +124,6 @@
 
 (comment ;; Try at a REPL. Modify to input different files
   (with-env {:filepaths "data/basic_record.csv,data/basic_record.psv,data/basic_record.ssv"}
-    (-main)))
+    ;;(-main)
+    (run environ.core/env)
+    ))
