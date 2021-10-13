@@ -47,7 +47,7 @@
   A more graceful implementation might hold files open for the entire runtime,
   but side-effect complexity becomes messy without care & is better skipped for a sample app"
   [filepath]
-  ;; Assume no header line
+  ;; Assume no header lines at top of input files
   (with-open [rdr (io/reader filepath)]
     (let [lines (line-seq rdr)
           separator (some-> (first lines)
@@ -60,7 +60,9 @@
                         #(str/split % separator)))
              doall))))) ;; Force in-memory realization now before file closes
 
-(def env-spec [:map [:filepaths [:string {:min 1}]]])
+(def env-spec [:map [:filepaths [:string {:min 1}]
+                     :column-length [:string {:optional true
+                                              :min 1}]]])
 
 (defn validate-env [] (m/validate env-spec env))
 (defn explain-env [] (m/explain env-spec env))
@@ -74,10 +76,6 @@
 (def dob [[:DateOfBirth compare]])
 
 (def lastname-desc [[:LastName string-compare-lowercase-desc]])
-
-(def output-views [color-lastname
-                   dob
-                   lastname-desc])
 
 (defn sort-records
   "Returns sorted list of input records based on sort-definition.
@@ -105,6 +103,87 @@
     (map load-record <>)
     (flatten <>)))
 
+(def record-spec [:map [:LastName [:string {:min 1}]
+                        :FirstName [:string {:min 1}]
+                        :Email [:string {:min 5}]
+                        :FavoriteColor [:string {:min 4 :max 40}]
+                        :DateOfBirth inst?]])
+
+;; Register `run` with Malli. This definition reads "takes env-spec & returns record"
+(m/=> run
+      [:=> [:cat env-spec]
+       [:sequential record-spec]])
+
+(def output-views [color-lastname
+                   dob
+                   lastname-desc])
+
+(defn trunc
+  "This is unexpectedly missing in clojure.string"
+  [s n]
+  (subs s 0 (min (count s) n)))
+
+(defn force-str-to-length
+  "Forces string to specific width, padding with empty spaces as necessary.
+  Longer strings are truncated with trailing ..."
+  [length s]
+  (let [difference (- length (count s))]
+    (cond
+      (pos? difference) (apply str s (repeat difference " "))
+      (neg? difference) (str (trunc s (- length 3)) "...")
+      :else s)))
+
+(defn render-view-cast-to-string
+  "Casts any record value to string"
+  [x]
+  (cond
+    (string? x) x
+    (inst? x) (.format (SimpleDateFormat. "M/d/yyyy") x)
+    :else (throw (Exception. (str "Invalid value <x,typeOf(x)> " x (type x))))))
+
+;; Little kludge to derive this from env. In a larger project,
+;; we'd parse env into a final map, validate it, & expose it via state management lib
+(defn env-column-length
+  []
+  (try
+    (if (integer? (:column-length environ.core/env))
+      (:column-length environ.core/env)
+      (Integer/parseInt (:column-length environ.core/env)))
+    (catch Exception _
+      16)))
+
+(defn render-view-data
+  "Given sequence of maps with common keys, renders into ASCII table of minimum width"
+  ([mapseq]
+   (render-view-data mapseq nil))
+  ([mapseq {:keys [column-length]
+            :or {column-length (env-column-length)}}]
+   (let [map-keys (keys (first mapseq))
+         labels (->> (map name map-keys)
+                     (map #(-> (force-str-to-length column-length %)
+                               (str " ")))
+                     (str/join)
+                     (drop-last)
+                     (str/join ""))
+         lines (->> (map vals mapseq)
+                    (map #(map (fn [s]
+                                 (str (->> (render-view-cast-to-string s)
+                                           (force-str-to-length column-length))
+                                      " ")) %))
+                    (map (comp str/join drop-last str/join))
+                    (str/join "\n"))]
+     (str labels "\n"
+          (str/join (repeat (count labels) "="))
+          "\n"
+          lines))))
+
+(defn run-render-views
+  [env]
+  (as-> (run (merge environ.core/env env)) <>
+    (repeat <>)
+    (map sort-records <> output-views)
+    (map render-view-data <>)))
+
 (defn -main
   [& _]
   ;; You could accept a file via Java program ARGS... but for sake of simplicity, just use $env
@@ -114,8 +193,9 @@
          (prn-str)
          (str "[ERROR] Problems below with input $env variables. Please fix & retry\n")
          (println))
-    (->> (run env)
-         (prn))))
+    (->> (run-render-views env)
+         (str/join "\n\n")
+         (println))))
 
 ;; This technically belongs in user.clj or test, but including here to make usage obvious
 (defmacro with-env
@@ -124,7 +204,6 @@
      ~@body))
 
 (comment ;; Try at a REPL. Modify to input different files
-  (with-env {:filepaths "data/basic_record.csv,data/basic_record.psv,data/basic_record.ssv"}
-    ;;(-main)
-    (run environ.core/env)
-    ))
+  (with-env {:filepaths "data/basic_record.csv,data/basic_record.psv,data/basic_record.ssv"
+             :column-length 12}
+    (-main)))

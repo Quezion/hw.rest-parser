@@ -7,6 +7,10 @@ As this isn't a "real production app", this repo's code has some metacommentary 
 There are two phases of this app's development:
 
 1. A simple CLI app that takes an input file & outputs three different views of the sorted records
+   * Automatically recognizes input file format
+   * Renders the three sorted views in order
+   * Expects input files to be consistently in one of the three described formats
+   * code at https://github.com/Quezion/hw.rest-parser/releases/tag/Step-1
 
 2. A rest HTTP server that receives new records & return sorted variations of them on endpoints
 
@@ -19,6 +23,11 @@ You may also set & run the program directly via `lein` like below.
 ```bash
 export FILEPATHS="data/basic_record.csv,data/basic_record.psv,data/basic_record.ssv"
 lein run
+```
+
+You may optionally set the `column-length` to be used when rendering the output table.
+```
+export COLUMN_LENGTH=10
 ```
 
 ## Test
