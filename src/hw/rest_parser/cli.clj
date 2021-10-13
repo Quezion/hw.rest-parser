@@ -1,4 +1,4 @@
-(ns hw.rest-parser
+(ns hw.rest-parser.cli
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [environ.core :refer [env]]

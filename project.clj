@@ -13,7 +13,7 @@
                  ;; Cleaner than base spec with extra features & more runtime dynamicism.
                  [metosin/malli "0.6.2"]]
   :plugins [[lein-environ "1.2.0"]]
-  :main ^:skip-aot hw.rest-parser
+  :main ^:skip-aot hw.rest-parser.server
   :target-path "target/%s"
   :profiles {:test {:resource-paths ["data"]}
              :uberjar {:aot :all

@@ -16,9 +16,13 @@ There are two phases of this app's development:
 
 ## Usage
 
-Launch a REPL session with your editor of choice (i.e. `M-x cider-jack-in-clj` or `lein repl`) See comment at end of `src/hw/rest_parser.clj` for REPL usage examples.
+Launch a REPL session with your editor of choice (i.e. `M-x cider-jack-in-clj` or `lein repl`)
 
-You may also set & run the program directly via `lein` like below.
+### CLI
+
+See comment at end of `src/hw/rest_parser.clj` for REPL usage examples.
+
+Run directly via `lein` like below.
 
 ```bash
 export FILEPATHS="data/basic_record.csv,data/basic_record.psv,data/basic_record.ssv"

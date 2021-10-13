@@ -1,9 +1,9 @@
-(ns hw.rest-parser-test
+(ns hw.rest-parser.cli-test
   (:require [environ.core :as environ]
             [clojure.edn :as edn]
             [clojure.string :as str]
             [clojure.test :refer :all]
-            [hw.rest-parser :refer :all]
+            [hw.rest-parser.cli :refer :all]
             [malli.instrument :as mi]))
 
 ;; We'd normally handle this via state-management lib to allow instrumentation in any app flow
