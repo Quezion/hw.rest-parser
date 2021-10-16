@@ -11,7 +11,15 @@
 
                  ;; Wraps clojure.spec to validate data structures & provide FN instrumentation.
                  ;; Cleaner than base spec with extra features & more runtime dynamicism.
-                 [metosin/malli "0.6.2"]]
+                 [metosin/malli "0.6.2"]
+
+                 ;; Simple state management library. There's good arguments for others,
+                 ;; but Mount is sufficient for this simple repo.
+                 [mount "0.1.16"]
+
+                 ;; Modern HTTP client + server. Usually picked for its option of full server asynchronicity.
+                 ;; Battle-proven in prod at several millions of requests / day.
+                 [aleph "0.4.6"]]
   :plugins [[lein-environ "1.2.0"]]
   :main ^:skip-aot hw.rest-parser.server
   :target-path "target/%s"
