@@ -19,7 +19,12 @@
 
                  ;; Modern HTTP client + server. Usually picked for its option of full server asynchronicity.
                  ;; Battle-proven in prod at several millions of requests / day.
-                 [aleph "0.4.6"]]
+                 [aleph "0.4.6"]
+
+                 ;; Bidirectional URI routing. Alternative to Compojure or similar libs.
+                 [bidi "2.1.6"]
+                 [ring/ring-core "1.5.0" :exclusions [org.clojure/clojure]] ;; required for ring-bidi
+                 ]
   :plugins [[lein-environ "1.2.0"]]
   :main ^:skip-aot hw.rest-parser.server
   :target-path "target/%s"
