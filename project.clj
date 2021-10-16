@@ -1,6 +1,5 @@
 (defproject hw.rest-parser "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "hw.rest-parser to build basic CLI parsing & HTTP server"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.3"]
@@ -24,7 +23,9 @@
                  ;; Bidirectional URI routing. Alternative to Compojure or similar libs.
                  [bidi "2.1.6"]
                  [ring/ring-core "1.5.0" :exclusions [org.clojure/clojure]] ;; required for ring-bidi
-                 ]
+
+                 ;; Common JSON parsing library
+                 [cheshire "5.10.0"]]
   :plugins [[lein-environ "1.2.0"]]
   :main ^:skip-aot hw.rest-parser.server
   :target-path "target/%s"

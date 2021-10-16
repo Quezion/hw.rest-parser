@@ -3,6 +3,7 @@
             [bidi.bidi :as bidi]
             [bidi.ring :as bidi-ring]
             [byte-streams :as bs]
+            [cheshire.core :as json]
             [clojure.string :as str]
             [environ.core :refer [env]]
             [hw.rest-parser.cli :as cli]
@@ -25,21 +26,33 @@
                 (:port defaults))))
 
 (defstate db
-  :start (atom {}))
+  :start (atom []))
 
 (defn post-record-handler
   [request]
-  {:status 200 :body "POST"})
+  (try
+    (let [body (-> :body request bs/to-string)
+          separator (cli/line->separator body)]
+      (if separator
+        (let [line (cli/line->record separator body)]
+          (swap! db conj line)
+          {:status 200 :body "Accepted record"})))
+    (catch Exception _
+      ;; In our simple view of the world, for this sample app... blame the user
+      {:status 400 :body "Probably bad user input ¯\\_(ツ)_/¯"})))
 
 (defn get-records-handler
-  [sort-name sort-comparator request]
-  {:status 200 :body sort-name})
+  [sort-definition request]
+  {:status 200
+   :headers {"content-type" "application/json"}
+   :body (-> (cli/sort-records @db sort-definition)
+             (json/encode))})
 
 (def routes
   ["/" {"records" {:post post-record-handler
-                   :get {"/color" (partial get-records-handler "color" cli/color-lastname)
-                         "/birthdate" (partial get-records-handler "color" cli/dob)
-                         "/name" (partial get-records-handler "color" cli/lastname-desc)}}}])
+                   :get {"/color" (partial get-records-handler cli/color-lastname)
+                         "/birthdate" (partial get-records-handler cli/dob)
+                         "/name" (partial get-records-handler cli/lastname-desc)}}}])
 
 (def handler (bidi-ring/make-handler routes))
 

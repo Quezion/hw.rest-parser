@@ -1,4 +1,4 @@
-(ns hw.rest-parser.cli-test
+(ns hw.rest-parser.server-test
   (:require [environ.core :as environ]
             [clojure.edn :as edn]
             [clojure.string :as str]

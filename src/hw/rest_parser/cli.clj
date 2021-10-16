@@ -42,6 +42,14 @@
   (-> (SimpleDateFormat. "MM/dd/yyyy")
       (.parse date)))
 
+(defn line->record
+  [separator line]
+  (as-> line <>
+    (str/split <> separator)
+    (map str/trim <>)
+    (zipmap row-headers <>)
+    (update <> :DateOfBirth parse-datestring)))
+
 (defn load-record
   "Loads record at target filepath into memory.
   A more graceful implementation might hold files open for the entire runtime,
@@ -54,10 +62,7 @@
                             (line->separator))]
       (when separator
         (->> lines
-             (map (comp #(update % :DateOfBirth parse-datestring)
-                        #(zipmap row-headers %)
-                        #(map str/trim %)
-                        #(str/split % separator)))
+             (map (partial line->record separator))
              doall))))) ;; Force in-memory realization now before file closes
 
 (def env-spec [:map [:filepaths [:string {:min 1}]
