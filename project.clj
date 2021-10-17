@@ -27,7 +27,7 @@
                  ;; Common JSON parsing library
                  [cheshire "5.10.0"]]
   :plugins [[lein-environ "1.2.0"]]
-  :main ^:skip-aot hw.rest-parser.server
+  :main ^:skip-aot hw.rest-parser.app
   :target-path "target/%s"
   :profiles {:test {:resource-paths ["data"]}
              :uberjar {:aot :all

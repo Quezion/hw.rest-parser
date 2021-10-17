@@ -191,7 +191,6 @@
 
 (defn -main
   [& _]
-  ;; You could accept a file via Java program ARGS... but for sake of simplicity, just use $env
   (if-not (validate-env)
     (->> (explain-env)
          (me/humanize)

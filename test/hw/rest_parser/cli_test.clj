@@ -7,7 +7,7 @@
             [malli.instrument :as mi]))
 
 ;; We'd normally handle this via state-management lib to allow instrumentation in any app flow
-;; Not only in tests, but also in any CI environments. (How confident are you in your specs? :)
+;; Not only in tests but potentially in CI / Integration environments
 (mi/instrument!)
 
 (def expected-table

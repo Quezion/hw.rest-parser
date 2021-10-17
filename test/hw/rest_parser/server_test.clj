@@ -13,6 +13,8 @@
             [malli.instrument :as mi]
             [mount.core :as mount]))
 
+(mi/instrument!)
+
 (defn record->csv
   "Maps record map into comma separated string"
   [record]
